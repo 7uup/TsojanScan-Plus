@@ -1,0 +1,99 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>net.portswigger.burp.extender</groupId>
+  <artifactId>burp-extender-api</artifactId>
+  <packaging>jar</packaging>
+  <version>2.3</version>
+  <name>burp-extender-api</name>
+  <url>https://portswigger.net/burp/extender/</url>
+  <description>API to reference when building extensions for Burp Suite Pro.</description>
+	<licenses>
+	  <license>
+			<name>Burp Suite Professional Licence Agreement</name>
+			<url>https://raw.githubusercontent.com/PortSwigger/burp-extender-api/master/LICENSE</url>
+	  </license>
+	</licenses>
+	<developers>
+		<developer>
+			<name>Adam Piper</name>
+			<email>adam.piper@portswigger.net</email>
+			<organization>PortSwigger Ltd.</organization>
+			<organizationUrl>http://portswigger.net</organizationUrl>
+		</developer>
+	</developers>
+	<scm>
+		<connection>scm:git:https://github.com/PortSwigger/burp-extender-api.git</connection>
+		<developerConnection>scm:git:git@github.com/PortSwigger/burp-extender-api.git</developerConnection>
+		<url>scm:git:git@github.com/PortSwigger/burp-extender-api.git</url>
+	</scm>
+
+  <distributionManagement>
+    <snapshotRepository>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </snapshotRepository>
+  </distributionManagement>
+
+  <properties>
+    <maven.compiler.target>1.9</maven.compiler.target>
+    <maven.compiler.source>1.9</maven.compiler.source>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.sonatype.plugins</groupId>
+        <artifactId>nexus-staging-maven-plugin</artifactId>
+        <version>1.6.7</version>
+        <extensions>true</extensions>
+        <configuration>
+          <serverId>ossrh</serverId>
+          <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+          <autoReleaseAfterClose>true</autoReleaseAfterClose>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <version>2.2.1</version>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <goals>
+              <goal>jar-no-fork</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.9.1</version>
+        <executions>
+          <execution>
+            <id>attach-javadocs</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-gpg-plugin</artifactId>
+        <version>1.5</version>
+        <executions>
+          <execution>
+            <id>sign-artifacts</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>sign</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

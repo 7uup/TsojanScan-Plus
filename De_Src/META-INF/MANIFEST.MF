@@ -1,0 +1,9 @@
+Manifest-Version: 1.0
+Archiver-Version: Plexus Archiver
+Created-By: Apache Maven
+Built-By: aka
+Build-Jdk: 1.8.0_202
+Implementation-Title: TsojanScan
+Implementation-Version: 1.4.6
+Implementation-Vendor-Id: com.alan.burp
+

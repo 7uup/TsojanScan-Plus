@@ -1,0 +1,18 @@
+/*
+ * Decompiled with CFR 0.153-SNAPSHOT (d6f6758-dirty).
+ */
+package org.checkerframework.checker.nullness.qual;
+
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+@Documented
+@Retention(value=RetentionPolicy.RUNTIME)
+@Target(value={ElementType.METHOD})
+public @interface AssertNonNullIfNonNull {
+    public String[] value();
+}
+
