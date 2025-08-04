@@ -34,6 +34,7 @@ implements IContextMenuFactory {
         JMenuItem jMenuItem_Ueditor = new JMenuItem("8. Ueditor .net Scan");
         JMenuItem jMenuItem_Jboss_RCE = new JMenuItem("9. Jboss RCE Scan");
         JMenuItem jMenuItem_Bypass_check = new JMenuItem("10. Bypass_check Scan");
+        JMenuItem jMenuItem_OssListObject = new JMenuItem("11. OssListObject Scan");
         list.add(jMenuItem_JPATH);
         list.add(jMenuItem_TP_RCE);
         list.add(jMenuItem_TP_Log);
@@ -44,6 +45,7 @@ implements IContextMenuFactory {
         list.add(jMenuItem_Ueditor);
         list.add(jMenuItem_Jboss_RCE);
         list.add(jMenuItem_Bypass_check);
+        list.add(jMenuItem_OssListObject);
         jMenuItem_JPATH.addActionListener(new ActionListener(){
 
             @Override
@@ -73,6 +75,23 @@ implements IContextMenuFactory {
                 }).start();
             }
         });
+
+
+        jMenuItem_OssListObject.addActionListener(new ActionListener(){
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                IHttpRequestResponse[] requestResponseList = invocation.getSelectedMessages();
+                new Thread(() -> {
+                    try {
+                        Menu.this.burpExtender.doOssListObjectScan(requestResponseList[0]);
+                    } catch (Exception ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }).start();
+            }
+        });
+
         jMenuItem_TP_RCE.addActionListener(new ActionListener(){
 
             @Override

@@ -8,3 +8,5 @@
 Bypass_Auth_check等
 <img width="1530" height="741" alt="image" src="https://github.com/user-attachments/assets/cdee4e5c-d8bb-402e-a1da-42c601fdcaea" />
 
+v0.0.2新增oss-listObject Check功能 包括云oss已经Minio
+![img.png](img.png)

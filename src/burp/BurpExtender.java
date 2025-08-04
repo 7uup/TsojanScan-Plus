@@ -3,23 +3,10 @@
  */
 package burp;
 
-import burp.Common;
-import burp.CustomScanIssue;
-import burp.IBurpExtender;
-import burp.IBurpExtenderCallbacks;
-import burp.IExtensionHelpers;
-import burp.IHttpRequestResponse;
-import burp.IHttpService;
-import burp.IMessageEditor;
-import burp.IMessageEditorController;
-import burp.IScanIssue;
-import burp.IScannerCheck;
-import burp.IScannerInsertionPoint;
-import burp.ITab;
+
 import burp.Listen.Ceye;
 import burp.Listen.IBackend;
 import burp.Listen.XyzDnsLog;
-import burp.Menu;
 import burp.ScanFun.*;
 import burp.utils.Config;
 import burp.utils.Utils;
@@ -28,7 +15,6 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
@@ -60,7 +46,7 @@ extends AbstractTableModel
 implements IBurpExtender,
 IScannerCheck,
 ITab,
-IMessageEditorController,IProxyListener {
+IMessageEditorController, IProxyListener {
     public static IBackend dnslog;
     public static PrintWriter stdout;
     static PrintWriter stderr;
@@ -99,6 +85,7 @@ IMessageEditorController,IProxyListener {
     private static JCheckBox enabled_laravel;
     private static JCheckBox enabled_Jboss;
     private static JCheckBox enabled_BypassCheck;
+    private static JCheckBox enable_Oss_listObject_Check;
     private static JCheckBox enabled_springenv;
     private static JCheckBox enabled_domain_blacklist;
     private static JCheckBox enabled_sleep;
@@ -114,6 +101,8 @@ IMessageEditorController,IProxyListener {
     public static HashMap<String, List<String>> scannedDomainURL_envcross;
     public static HashMap<String, List<String>> scannedDomainURL_gateway;
     public static HashMap<String, List<String>> scannedDomainURL_Bypass;
+    public static HashMap<String, List<String>> scannedDomainURL_Oss;
+
     public static HashMap<String, List<String>> scannedDomainURL_spel;
     public static HashMap<String, List<String>> scannedDomainURL_log4j;
     public static HashMap<String, List<String>> scannedDomainURL_text4shell;
@@ -213,6 +202,7 @@ IMessageEditorController,IProxyListener {
         enabled_springenv.setSelected(Config.getBoolean("enabled_springenv", true));
         enabled_Jboss.setSelected(Config.getBoolean("enabled_Jboss", true));
         enabled_BypassCheck.setSelected(Config.getBoolean("enabled_BypassCheck", true));
+        enabled_BypassCheck.setSelected(Config.getBoolean("enabled_Oss_listObject_Check", true));
         domain_blacklist.setText(Config.get("domain_blacklist", ""));
     }
 
@@ -234,6 +224,7 @@ IMessageEditorController,IProxyListener {
         Config.setBoolean("enabled_springenv", enabled_springenv.isSelected());
         Config.setBoolean("enabled_Jboss", enabled_Jboss.isSelected());
         Config.setBoolean("enabled_BypassCheck", enabled_BypassCheck.isSelected());
+        Config.setBoolean("enabled_Oss_listObject_Check", enabled_BypassCheck.isSelected());
         JOptionPane.showMessageDialog(configPane, "Apply success!");
     }
 
@@ -547,6 +538,12 @@ IMessageEditorController,IProxyListener {
         bypass_check.add(enabled_BypassCheck);
 
 
+        JPanel oss_listobject_check = BurpExtender.GetXJPanel();
+        enable_Oss_listObject_Check = new JCheckBox();
+        oss_listobject_check.add(new JLabel("Enable Oss_listObject_Check Scan: "));
+        oss_listobject_check.add(enable_Oss_listObject_Check);
+
+
 
 
         JButton applyBtn = new JButton("Apply");
@@ -571,6 +568,7 @@ IMessageEditorController,IProxyListener {
         configMainPanel.add(subPanel_sqli);
         configMainPanel.add(Jboss_vul);
         configMainPanel.add(bypass_check);
+        configMainPanel.add(oss_listobject_check);
         return configMainPanel;
     }
 
@@ -757,6 +755,21 @@ IMessageEditorController,IProxyListener {
 
     }
 
+
+    public void doOssListObjectScan(IHttpRequestResponse baseRequestResponse) throws InterruptedException {
+        IHttpRequestResponse OssListObjectScan;
+        URL url = helpers.analyzeRequest(baseRequestResponse).getUrl();
+        String custompath = url.getPath();
+        ArrayList<IScanIssue> issues = new ArrayList<IScanIssue>();
+        if (custompath.lastIndexOf("/") == custompath.length() - 1) {
+            custompath = custompath.substring(0, custompath.length() - 1);
+        }
+        if ((OssListObjectScan = OssScan.OssScan(baseRequestResponse, callbacks, helpers,2)) != null && OssListObjectScan.getResponse() != null) {
+            issues = this.Addissuse(OssListObjectScan, "OssListObject Found!", issues);
+        }
+
+    }
+
     public void doJPathScan(IHttpRequestResponse baseRequestResponse) throws FileNotFoundException {
         IHttpRequestResponse actuatorrequestResponseDruid;
         IHttpRequestResponse actuatorrequestResponseSwagger;
@@ -821,7 +834,10 @@ IMessageEditorController,IProxyListener {
     }
 
     @Override
-    public List<IScanIssue> doPassiveScan(IHttpRequestResponse baseRequestResponse) {
+    public List<IScanIssue> doPassiveScan(IHttpRequestResponse baseRequestResponse) throws InterruptedException {
+        String[] oss_host=new String[]{"aliyuncs.com","myqcloud.com","s3.amazonaws.com","s3.us-west-1.amazonaws.com","s3.us-east-1.amazonaws.com","storage.googleapis.com","storage.cloud.google.com","s3.eu-central-1.wasabisys.com","s3.wasabisys.com","s3.filebase.com","nyc3.digitaloceanspaces.com","sgp1.digitaloceanspaces.com","ams3.digitaloceanspaces.com","b2api.backblazeb2.com"};
+
+        String[] perix= new String[]{".css", ".js", ".png", ".jpg", ".gif", ".jpeg", ".svg", ".woff", ".woff2", ".ttf", ".ico", ".iso", ".xlsx", ".docs", ".doc", ".xls", ".ios", ".apk", ".mp3", ".mp4", ".swf", ".otf",".pdf"};
         stdout.println("自动被动扫描开启！");
         ArrayList<IScanIssue> issues = new ArrayList<IScanIssue>();
         Short LevelCross = 1;
@@ -829,6 +845,44 @@ IMessageEditorController,IProxyListener {
         if (!Config.getBoolean("enabled_scan", true)) {
             return null;
         }
+
+        helpers.analyzeRequest(baseRequestResponse).getHeaders().get(1);
+
+        String header = helpers.analyzeRequest(baseRequestResponse).getHeaders().get(1);
+        String url_pre = helpers.analyzeRequest(baseRequestResponse).getHeaders().get(0);
+
+
+        /**
+         * Minio TOdo
+         * Minio好像没啥强特征，目前先判断后缀把
+         *
+         */
+
+        if (this.Istarget(baseRequestResponse)  && Config.getBoolean("enabled_scan", true) && Config.getBoolean("enabled_Oss_listObject_Check", true) && Arrays.stream(oss_host).anyMatch(header::contains)) {
+
+            IHttpRequestResponse OsslistObjectCheck;
+            try {
+                if ((OsslistObjectCheck = OssScan.OssScan(baseRequestResponse, callbacks, helpers,1)) != null && OsslistObjectCheck.getResponse() != null) {
+                    issues = this.Addissuse(OsslistObjectCheck, "OssListObject  Found!", issues);
+                }
+            }catch (Exception e){
+                stdout.println("OssListObject \u626b\u63cf\u51fa\u9519" + e);
+            }
+        }else if (this.Istarget(baseRequestResponse)  && Config.getBoolean("enabled_scan", true) && Config.getBoolean("enabled_Oss_listObject_Check", true) && Arrays.stream(perix).anyMatch(url_pre::contains)){
+
+            IHttpRequestResponse OsslistObjectCheck;
+            try {
+                if ((OsslistObjectCheck = OssScan.OssScan(baseRequestResponse, callbacks, helpers,2)) != null && OsslistObjectCheck.getResponse() != null) {
+                    issues = this.Addissuse(OsslistObjectCheck, "OssListObject  Found!", issues);
+                }
+            }catch (Exception e){
+                stdout.println("OssListObject \u626b\u63cf\u51fa\u9519" + e);
+            }
+
+        }
+
+
+
         if (this.Istarget(baseRequestResponse) && this.Paichu(baseRequestResponse) && Config.getBoolean("enabled_scan", true)) {
             IHttpRequestResponse ueditor_dotnet_rce_reqres;
             IHttpRequestResponse requestResponseh;
@@ -1381,13 +1435,16 @@ IMessageEditorController,IProxyListener {
         scannedDomainURL_Ueditor_dotnet_rce = new ArrayList<String>();
         scannedDomainURL_Jboss_rce = new ArrayList<String>();
         scannedDomainURL_Bypass = new HashMap();
+        scannedDomainURL_Oss = new HashMap();
         BlackListDomain_org = new String[]{"172.247.14.95", "101.35.54.28:8000", "ceye.io", "api.ipify.org", "google.cn", "google.com", "google.co.jp", "gstatic.com", "ytimg.com", "doubleclick.net", "ggpht.com", "youtube.com", "googleusercontent.com", "github.com", "githubassets.com", "raw.githubusercontent.com", "e.topthink.com", "hcfy.app", "wappalyzer.com", "detectportal.firefox.com", "servicewechat.com", "ingest.sentry.io", "firefox.com", "tencent-cloud.com", "amap.com", "googleapis.com", "mozilla.cloudflare-dns.com", "mozilla.com", "netease.com", "webapp.163.com", "wx.qlogo.cn", "qq.com", "mozilla.org", "firefoxchina.cn", "baidu.com", "bdstatic.com", "firefox.cn", "mozilla.net", "fofa.info", "qpic.cn", "g-fox.cn", "firefox.com.cn", "qlogo.cn", "rss.ink"};
     }
 
     @Override
-    public void processProxyMessage(boolean var1, IInterceptedProxyMessage var2) {
-        stdout.println(222222);
+    public void processProxyMessage(boolean messageIsRequest, IInterceptedProxyMessage message) {
+        // 我们只对请求进行处理
+        stdout.println(111);
     }
+
 
     public class Ulist {
         final String host;

@@ -9,7 +9,7 @@ import burp.IScannerInsertionPoint;
 import java.util.List;
 
 public interface IScannerCheck {
-    public List<IScanIssue> doPassiveScan(IHttpRequestResponse var1);
+    public List<IScanIssue> doPassiveScan(IHttpRequestResponse var1) throws InterruptedException;
 
     public List<IScanIssue> doActiveScan(IHttpRequestResponse var1, IScannerInsertionPoint var2);
 
