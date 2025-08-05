@@ -84,6 +84,7 @@ IMessageEditorController, IProxyListener {
     private static JCheckBox enabled_thinkphp;
     private static JCheckBox enabled_laravel;
     private static JCheckBox enabled_Jboss;
+    private static JCheckBox enabled_xxljob;
     private static JCheckBox enabled_BypassCheck;
     private static JCheckBox enable_Oss_listObject_Check;
     private static JCheckBox enabled_springenv;
@@ -113,6 +114,7 @@ IMessageEditorController, IProxyListener {
     public static List<String> scannedDomainURL_weblogic_rce;
     public static List<String> scannedDomainURL_axis;
     public static List<String> scannedDomainURL_nacos;
+    public static List<String> scannedDomainURL_xxljob;
     public static List<String> scannedDomainURL_laravel_debugrce;
     public static List<String> scannedDomainURL_laravel_env;
     public static List<String> scannedDomainURL_Ueditor_dotnet_rce;
@@ -201,6 +203,7 @@ IMessageEditorController, IProxyListener {
         enabled_laravel.setSelected(Config.getBoolean("enabled_laravel", true));
         enabled_springenv.setSelected(Config.getBoolean("enabled_springenv", true));
         enabled_Jboss.setSelected(Config.getBoolean("enabled_Jboss", true));
+        enabled_xxljob.setSelected(Config.getBoolean("enabled_xxljob",true));
         enabled_BypassCheck.setSelected(Config.getBoolean("enabled_BypassCheck", true));
         enabled_BypassCheck.setSelected(Config.getBoolean("enabled_Oss_listObject_Check", true));
         domain_blacklist.setText(Config.get("domain_blacklist", ""));
@@ -225,6 +228,7 @@ IMessageEditorController, IProxyListener {
         Config.setBoolean("enabled_Jboss", enabled_Jboss.isSelected());
         Config.setBoolean("enabled_BypassCheck", enabled_BypassCheck.isSelected());
         Config.setBoolean("enabled_Oss_listObject_Check", enabled_BypassCheck.isSelected());
+        Config.setBoolean("enable_xxljob",enabled_xxljob.isSelected());
         JOptionPane.showMessageDialog(configPane, "Apply success!");
     }
 
@@ -544,6 +548,12 @@ IMessageEditorController, IProxyListener {
         oss_listobject_check.add(enable_Oss_listObject_Check);
 
 
+        JPanel xxljob_check = BurpExtender.GetXJPanel();
+        enabled_xxljob = new JCheckBox();
+        xxljob_check.add(new JLabel("Enable xxljob_check Scan: "));
+        xxljob_check.add(enabled_xxljob);
+
+
 
 
         JButton applyBtn = new JButton("Apply");
@@ -569,6 +579,7 @@ IMessageEditorController, IProxyListener {
         configMainPanel.add(Jboss_vul);
         configMainPanel.add(bypass_check);
         configMainPanel.add(oss_listobject_check);
+        configMainPanel.add(xxljob_check);
         return configMainPanel;
     }
 
@@ -825,6 +836,18 @@ IMessageEditorController, IProxyListener {
         }
     }
 
+    public void doxxlJobScan(IHttpRequestResponse baseRequestResponse){
+        ArrayList<IScanIssue> issues = new ArrayList<IScanIssue>();
+        try {
+            IHttpRequestResponse xxlreqres = XXLJobScan.doxxlJob(baseRequestResponse, callbacks, helpers);
+            if (xxlreqres != null && xxlreqres.getResponse() != null) {
+                issues = this.Addissuse(xxlreqres, "xxl-job-vule-Scan", issues);
+            }
+        } catch (Exception e) {
+            stdout.println("xxlJobScan-Error:"+e);
+        }
+    }
+
     private List<int[]> getMatches(byte[] response, byte[] match) {
         ArrayList<int[]> matches = new ArrayList<int[]>();
         for (int start = 0; start < response.length && (start = helpers.indexOf(response, match, true, start, response.length)) != -1; start += match.length) {
@@ -890,6 +913,29 @@ IMessageEditorController, IProxyListener {
             URL url;
             List<String> resheaders = helpers.analyzeResponse(baseRequestResponse.getResponse()).getHeaders();
             String requrl = helpers.analyzeRequest(baseRequestResponse).getUrl().getPath();
+
+            if (this.IsneedScan(baseRequestResponse, "xxljob") && this.Istarget(baseRequestResponse) && Config.getBoolean("enabled_scan", true) && Config.getBoolean("enabled_xxljob", true)) {
+                IHttpRequestResponse xxljob_finger;
+                IHttpRequestResponse xxljob_exec_finger;
+
+                url = helpers.analyzeRequest(baseRequestResponse).getUrl();
+                if (this.IsneedScan(baseRequestResponse, "xxljob_Finger") && !scannedDomainURL_xxljob.contains(url.getHost() + ":" + url.getPort()) && Config.getBoolean("enabled_scan", true) && (xxljob_finger = XXLJobScan.xxl_job_FingerScan(baseRequestResponse, callbacks, helpers))!=null && xxljob_finger.getResponse() != null){
+                    issues = this.Addissuse(xxljob_finger, "xxljob_Found", issues);
+                    IHttpRequestResponse xxl_job_weak_password;
+                    if ((xxl_job_weak_password = XXLJobScan.xxl_job_weak_password(baseRequestResponse, callbacks, helpers)) != null && xxl_job_weak_password.getResponse() != null && this.IsneedAddIssuse(xxl_job_weak_password, "xxljob_weak_password") && Config.getBoolean("enabled_scan", true)){
+                        issues = this.Addissuse(xxl_job_weak_password, "xxljob_weakPassword", issues);
+                    }
+
+                }
+
+
+                IHttpRequestResponse xxljob_exec_run;
+                if (this.IsneedScan(baseRequestResponse, "xxljob_exec_Finger") && !scannedDomainURL_xxljob.contains(url.getHost() + ":" + url.getPort()) && Config.getBoolean("enabled_scan", true) && (xxljob_exec_finger = XXLJobScan.xxl_job_exec_FingerScan(baseRequestResponse, callbacks, helpers))!=null && xxljob_exec_finger.getResponse() != null){
+                    if (this.IsneedAddIssuse(xxljob_exec_finger, "xxljob_exec_run") && Config.getBoolean("enabled_scan", true) && (xxljob_exec_run =  XXLJobScan.xxl_job_exec_Scan(baseRequestResponse, callbacks, helpers))!=null && xxljob_exec_run.getResponse() != null){
+                        issues = this.Addissuse(xxljob_exec_run, "xxljob_exex_defaultToken", issues);;
+                    }
+                }
+            }
 
 
             if (this.IsneedScan(baseRequestResponse, "Jboss") && this.Istarget(baseRequestResponse) && Config.getBoolean("enabled_scan", true) && Config.getBoolean("enabled_Jboss", true)) {
@@ -1430,6 +1476,7 @@ IMessageEditorController, IProxyListener {
         scannedDomainURL_weblogic_rce = new ArrayList<String>();
         scannedDomainURL_axis = new ArrayList<String>();
         scannedDomainURL_nacos = new ArrayList<String>();
+        scannedDomainURL_xxljob = new ArrayList<String>();
         scannedDomainURL_laravel_debugrce = new ArrayList<String>();
         scannedDomainURL_laravel_env = new ArrayList<String>();
         scannedDomainURL_Ueditor_dotnet_rce = new ArrayList<String>();

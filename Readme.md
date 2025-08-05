@@ -8,5 +8,9 @@
 Bypass_Auth_check等
 <img width="1530" height="741" alt="image" src="https://github.com/user-attachments/assets/cdee4e5c-d8bb-402e-a1da-42c601fdcaea" />
 
-v0.0.2新增oss-listObject Check功能 包括云oss已经Minio
+v0.0.2新增oss-listObject Check功能 包括云oss以及Minio
 ![img.png](https://youke1.picui.cn/s1/2025/08/04/68901f455efbb.png)
+
+ v0.0.3新增xxljob-scan功能
+ ![img.png](https://img.cdn1.vip/i/689164bd17f43_1754358973.webp)
+ 

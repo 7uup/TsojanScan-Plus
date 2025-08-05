@@ -30,7 +30,7 @@ public class JbossScan {
             headers.set(0, "GET " + uri + " HTTP/1.1");
             byte[] body2 = helpers.buildHttpMessage(headers, null);
             IHttpRequestResponse JbossFin = callbacks.makeHttpRequest(reqres.getHttpService(), body2);
-            if (JbossFin!=null && JbossFin.getResponse()!=null && helpers.analyzeResponse(JbossFin.getResponse()).getStatusCode()!=404 && helpers.analyzeResponse(JbossFin.getResponse()).getStatusCode()!=302){
+            if (JbossFin!=null && JbossFin.getResponse()!=null && helpers.analyzeResponse(JbossFin.getResponse()).getStatusCode()!=404 && helpers.analyzeResponse(JbossFin.getResponse()).getStatusCode()!=302 && new String(JbossFin.getResponse()).contains("Jboss")){
                 BurpExtender.scannedDomainURL_Jboss_rce.add(helpers.analyzeRequest(reqres).getUrl().getHost() + ":" + helpers.analyzeRequest(reqres).getUrl().getPort());
                 return JbossFin;
             }

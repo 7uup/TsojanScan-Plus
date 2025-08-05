@@ -35,6 +35,7 @@ implements IContextMenuFactory {
         JMenuItem jMenuItem_Jboss_RCE = new JMenuItem("9. Jboss RCE Scan");
         JMenuItem jMenuItem_Bypass_check = new JMenuItem("10. Bypass_check Scan");
         JMenuItem jMenuItem_OssListObject = new JMenuItem("11. OssListObject Scan");
+        JMenuItem jMenuItem_xxljob = new JMenuItem("12. xxljob Scan");
         list.add(jMenuItem_JPATH);
         list.add(jMenuItem_TP_RCE);
         list.add(jMenuItem_TP_Log);
@@ -46,6 +47,7 @@ implements IContextMenuFactory {
         list.add(jMenuItem_Jboss_RCE);
         list.add(jMenuItem_Bypass_check);
         list.add(jMenuItem_OssListObject);
+        list.add(jMenuItem_xxljob);
         jMenuItem_JPATH.addActionListener(new ActionListener(){
 
             @Override
@@ -69,6 +71,21 @@ implements IContextMenuFactory {
                 new Thread(() -> {
                     try {
                         Menu.this.burpExtender.doBypassCheckScan(requestResponseList[0]);
+                    } catch (Exception ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }).start();
+            }
+        });
+
+        jMenuItem_xxljob.addActionListener(new ActionListener(){
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                IHttpRequestResponse[] requestResponseList = invocation.getSelectedMessages();
+                new Thread(() -> {
+                    try {
+                        Menu.this.burpExtender.doxxlJobScan(requestResponseList[0]);
                     } catch (Exception ex) {
                         throw new RuntimeException(ex);
                     }
