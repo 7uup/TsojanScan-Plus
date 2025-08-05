@@ -14,10 +14,10 @@ import java.util.regex.Pattern;
 public class OssScan {
 
     private static Set<String> bypassedHosts = new HashSet<>();
-    private static String[] perix= new String[]{".css", ".js", ".png", ".jpg", ".gif", ".jpeg", ".svg", ".woff", ".woff2", ".ttf", ".ico", ".iso", ".xlsx", ".docs", ".doc", ".xls", ".ios", ".apk", ".mp3", ".mp4", ".swf", ".otf",".pdf"};
+    private static String[] perix= new String[]{".css", ".js", ".png", ".jpg", ".gif", ".jpeg", ".svg", ".woff", ".woff2", ".ttf", ".ico", ".iso", ".xlsx", ".docs", ".doc", ".xls", ".ios", ".apk", ".mp3", ".mp4", ".swf", ".otf",".pdf",".txt"};
 //    private static String[] oss_host=new String[]{"oss-cn-hangzhou.aliyuncs.com","oss-cn-shanghai.aliyuncs.com","oss-cn-beijing.aliyuncs.com","oss-cn-shenzhen.aliyuncs.com","oss-us-west-1.aliyuncs.com","oss-ap-northeast-1.aliyuncs.com","cos.ap-shanghai.myqcloud.com","cos.ap-beijing.myqcloud.com","cos.ap-guangzhou.myqcloud.com","cos.ap-hongkong.myqcloud.com","cos.us-west.myqcloud.com","s3.amazonaws.com","s3.us-west-1.amazonaws.com","s3.us-east-1.amazonaws.com","storage.googleapis.com","storage.cloud.google.com","s3.eu-central-1.wasabisys.com","s3.wasabisys.com","s3.filebase.com","nyc3.digitaloceanspaces.com","sgp1.digitaloceanspaces.com","ams3.digitaloceanspaces.com","b2api.backblazeb2.com"};
 
-    private static String[] oss_host=new String[]{"aliyuncs.com","myqcloud.com","s3.amazonaws.com","s3.us-west-1.amazonaws.com","s3.us-east-1.amazonaws.com","storage.googleapis.com","storage.cloud.google.com","s3.eu-central-1.wasabisys.com","s3.wasabisys.com","s3.filebase.com","nyc3.digitaloceanspaces.com","sgp1.digitaloceanspaces.com","ams3.digitaloceanspaces.com","b2api.backblazeb2.com"};
+    private static String[] oss_host=new String[]{"myhuaweicloud.com","aliyuncs.com","myqcloud.com","s3.amazonaws.com","s3.us-west-1.amazonaws.com","s3.us-east-1.amazonaws.com","storage.googleapis.com","storage.cloud.google.com","s3.eu-central-1.wasabisys.com","s3.wasabisys.com","s3.filebase.com","nyc3.digitaloceanspaces.com","sgp1.digitaloceanspaces.com","ams3.digitaloceanspaces.com","b2api.backblazeb2.com"};
     public static IHttpRequestResponse OssScan(IHttpRequestResponse baseRequestResponse, IBurpExtenderCallbacks callbacks, IExtensionHelpers helpers,int type) throws InterruptedException {
         byte[] body;
 
@@ -48,19 +48,23 @@ public class OssScan {
                             if (!originalPath.endsWith(perix_check)){
                                 continue;
                             }else {
-                                String newPath = AddPoc_oss(path);
-                                String newPath1="GET "+newPath+" HTTP/1.1";
-                                headers.set(0, newPath1);
-                                byte[] request = helpers.buildHttpMessage(headers, null);
-                                Thread.sleep(Integer.parseInt(BurpExtender.sleep_value.getText()));
+                                for (String newPath:AddPoc_oss(path)){
+                                    String newPath1="GET "+newPath+" HTTP/1.1";
+                                    headers.set(0, newPath1);
+                                    byte[] request = helpers.buildHttpMessage(headers, null);
+                                    Thread.sleep(Integer.parseInt(BurpExtender.sleep_value.getText()));
 
-                                IHttpRequestResponse response = callbacks.makeHttpRequest(baseRequestResponse.getHttpService(), request);
+                                    IHttpRequestResponse response = callbacks.makeHttpRequest(baseRequestResponse.getHttpService(), request);
 
-                                if (response.getResponse()!=null && !(new String(response.getResponse()).contains("AccessDenied") || new String(response.getResponse()).contains("NoSuchKey")) && new String(response.getResponse()).contains("<ListBucketResult")){
-                                    return response;
-                                }else {
-                                    return null;
+                                    if (response.getResponse()!=null && !(new String(response.getResponse()).contains("AccessDenied")) && new String(response.getResponse()).contains("<ListBucketResult")){
+                                        return response;
+                                    }else if (new String(response.getResponse()).contains("NoSuchKey")){
+                                        continue;
+                                    }else {
+                                        return null;
+                                    }
                                 }
+
 
                             }
 
@@ -72,18 +76,21 @@ public class OssScan {
                     if (!originalPath.endsWith(perix_check)){
                         continue;
                     }else {
-                        String newPath = AddPoc_oss(path);
-                        String newPath1="GET "+newPath+" HTTP/1.1";
-                        headers.set(0, newPath1);
-                        byte[] request = helpers.buildHttpMessage(headers, null);
-                        Thread.sleep(Integer.parseInt(BurpExtender.sleep_value.getText()));
+                        for (String newPath:AddPoc_oss(path)){
+                            String newPath1="GET "+newPath+" HTTP/1.1";
+                            headers.set(0, newPath1);
+                            byte[] request = helpers.buildHttpMessage(headers, null);
+                            Thread.sleep(Integer.parseInt(BurpExtender.sleep_value.getText()));
 
-                        IHttpRequestResponse response = callbacks.makeHttpRequest(baseRequestResponse.getHttpService(), request);
+                            IHttpRequestResponse response = callbacks.makeHttpRequest(baseRequestResponse.getHttpService(), request);
 
-                        if (response.getResponse()!=null && !(new String(response.getResponse()).contains("AccessDenied") || new String(response.getResponse()).contains("NoSuchKey")) && new String(response.getResponse()).contains("<ListBucketResult")){
-                            return response;
-                        }else {
-                            return null;
+                            if (response.getResponse()!=null && !(new String(response.getResponse()).contains("AccessDenied")) && new String(response.getResponse()).contains("<ListBucketResult")){
+                                return response;
+                            }else if (new String(response.getResponse()).contains("NoSuchKey")){
+                                continue;
+                            }else {
+                                return null;
+                            }
                         }
 
                     }
@@ -96,45 +103,35 @@ public class OssScan {
 
     }
 
-    public static String AddPoc_oss(String rawRequestLine) {
+    public static String[] AddPoc_oss(String rawRequestLine) {
         String[] parts = rawRequestLine.split(" ");
         if (parts.length < 2) {
             System.out.println("无法解析请求行: " + rawRequestLine);
-            return null;
+            return new String[0];
         }
 
         String path = parts[1];
         if (!path.startsWith("/")) {
             System.out.println("非法路径: " + path);
-            return null;
+            return new String[0];
         }
 
-        String[] pathSegments = path.split("/");
+        String[] segments = path.substring(1).split("/");
+        if (segments.length == 0) {
+            return new String[]{"/"};
+        }
 
-        int nonEmptySegmentCount = 0;
-        for (String segment : pathSegments) {
-            if (!segment.isEmpty()) {
-                nonEmptySegmentCount++;
+        List<String> paths = new ArrayList<>();
+        for (int i = segments.length - 1; i >= 0; i--) {
+            StringBuilder sb = new StringBuilder("/");
+            for (int j = 0; j < i; j++) {
+                sb.append(segments[j]).append("/");
             }
+            paths.add(sb.toString());
         }
 
-        if (nonEmptySegmentCount < 1) {
-            System.out.println("路径过短，无法处理: " + path);
-            return null;
-        }
+//        paths.add("/");
 
-        StringBuilder newPath = new StringBuilder();
-        int nonEmptySeen = 0;
-        for (String segment : pathSegments) {
-            if (!segment.isEmpty()) {
-                nonEmptySeen++;
-                if (nonEmptySeen == nonEmptySegmentCount) {
-                    break;
-                }
-                newPath.append("/").append(segment);
-            }
-        }
-
-        return newPath.length() > 0 ? newPath.append("/").toString() : "/";
+        return paths.toArray(new String[0]);
     }
 }

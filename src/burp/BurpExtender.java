@@ -860,7 +860,7 @@ IMessageEditorController, IProxyListener {
     public List<IScanIssue> doPassiveScan(IHttpRequestResponse baseRequestResponse) throws InterruptedException {
         String[] oss_host=new String[]{"aliyuncs.com","myqcloud.com","s3.amazonaws.com","s3.us-west-1.amazonaws.com","s3.us-east-1.amazonaws.com","storage.googleapis.com","storage.cloud.google.com","s3.eu-central-1.wasabisys.com","s3.wasabisys.com","s3.filebase.com","nyc3.digitaloceanspaces.com","sgp1.digitaloceanspaces.com","ams3.digitaloceanspaces.com","b2api.backblazeb2.com"};
 
-        String[] perix= new String[]{".css", ".js", ".png", ".jpg", ".gif", ".jpeg", ".svg", ".woff", ".woff2", ".ttf", ".ico", ".iso", ".xlsx", ".docs", ".doc", ".xls", ".ios", ".apk", ".mp3", ".mp4", ".swf", ".otf",".pdf"};
+        String[] perix= new String[]{".css", ".js", ".png", ".jpg", ".gif", ".jpeg", ".svg", ".woff", ".woff2", ".ttf", ".ico", ".iso", ".xlsx", ".docs", ".doc", ".xls", ".ios", ".apk", ".mp3", ".mp4", ".swf", ".otf",".pdf",".txt"};
         stdout.println("自动被动扫描开启！");
         ArrayList<IScanIssue> issues = new ArrayList<IScanIssue>();
         Short LevelCross = 1;
